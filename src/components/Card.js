@@ -19,7 +19,10 @@ const Card = ({ data, title }) => {
 		<div className="card p-3">
 			<h1 className="card-header-title is-centered">{title}</h1>
 			<div className="card-image is-flex is-justify-content-center">
-				<FontAwesomeIcon className="is-size-1" icon={icon} />
+				<FontAwesomeIcon
+					className="is-size-3-tablet is-size-1-desktop"
+					icon={icon}
+				/>
 			</div>
 			<div>
 				<h1 className="title is-size-5 has-text-centered">Temperature:</h1>
