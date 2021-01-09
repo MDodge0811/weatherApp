@@ -1,28 +1,66 @@
 import React from 'react';
+import 'bulma';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { fas } from '@fortawesome/free-solid-svg-icons';
+import {
+	faCloud,
+	faSun,
+	faBolt,
+	faCloudRain,
+	faCloudShowersHeavy,
+	faSnowflake,
+} from '@fortawesome/free-solid-svg-icons';
 import openweather from '../api/openweather';
+import Card from './Card.js';
+import setTime from '../helpers/set_time';
+import '../css/styles.css';
+
+library.add(
+	fas,
+	faCloud,
+	faSun,
+	faBolt,
+	faCloudRain,
+	faCloudShowersHeavy,
+	faSnowflake
+);
 
 class App extends React.Component {
-	state = { city: null, weather: [], errorMessage: null };
+	state = {
+		timezone: null,
+		weather: {
+			currentWeather: { dt: null, temp: null, weather: null },
+			dailyweather: { dt: null, temp: null, weather: null },
+		},
+		errorMessage: null,
+	};
 
 	getWeather = async ({ coords }) => {
 		const key = 'c0e6273d9c10a2fe23babceaed9559df';
 
-		let { data } = await openweather.get(
-			`forecast?lat=${coords.latitude}&lon=${coords.longitude}&units=imperial&appid=${key}`
+		const { data } = await openweather.get(
+			`onecall?lat=${coords.latitude}&lon=${coords.longitude}&units=imperial&appid=${key}`
 		);
+		const weatherList = { currentWeather: {}, dailyWeather: [] };
 
-		const weatherList = [];
+		weatherList.currentWeather = {
+			dt: data.current.dt,
+			temp: data.current.temp,
+			weather: data.current.weather[0].main,
+		};
 
-		data.list.forEach((time) =>
-			weatherList.push({
-				temp_max: time.main.temp_max,
-				temp_min: time.main.temp_min,
-				weather: time.weather[0].main,
-			})
-		);
-
+		const days = 5; // number of days to render (1-7)
+		data.daily.forEach((time, index) => {
+			if (index < days) {
+				weatherList.dailyWeather.push({
+					dt: time.dt,
+					temp: time.temp.day,
+					weather: time.weather[0].main,
+				});
+			}
+		});
 		this.setState({ weather: weatherList });
-		this.setState({ city: data.city.name });
+		this.setState({ timezone: data.timezone });
 	};
 
 	componentDidMount = () => {
@@ -32,53 +70,41 @@ class App extends React.Component {
 		);
 	};
 
-	renderContent = () => {
-		if (this.state.city === null) {
-			return <div>Loading...</div>;
-		} else {
-			return (
-				<ul>
-					{this.state.weather.map((object) => (
-						<div>
-							<li>
-								Max Temp: {Math.floor(object.temp_max)}, Min Temp:{' '}
-								{Math.floor(object.temp_min)}, General Conditions:{' '}
-								{object.weather}
-							</li>
-						</div>
-					))}
-				</ul>
-			);
-		}
+	renderComponent = () => {
+		return this.state.weather.dailyWeather.map((object) => {
+			const { day } = setTime(object.dt);
+			return <Card id="fiveday" data={object} title={day} key={object.dt} />;
+		});
 	};
 
 	render() {
-		return <div>{this.renderContent()}</div>;
+		if (this.state.weather.currentWeather.dt === null) {
+			return (
+				<React.Fragment>
+					<section className="loading is-flex is-align-items-center  is-justify-items-center is-large">
+						<progress className="m-6 progress is-primary" max="100">
+							15%
+						</progress>
+					</section>
+				</React.Fragment>
+			);
+		} else {
+			return (
+				<React.Fragment>
+					<section className="is-flex is-justify-content-center">
+						<Card
+							id="current-weather"
+							data={this.state.weather.currentWeather}
+							title="Current"
+							key={this.state.weather.currentWeather.dt}
+							className="is-centered"
+						/>
+					</section>
+					<section className="section">{this.renderComponent()}</section>
+				</React.Fragment>
+			);
+		}
 	}
 }
-
-//
-
-// const useAsyncHook = () => {
-//   const [loading, setLoading] = useState(true)
-//   const [location, setLocation] = useState({})
-
-//     navigator.geolocation.getCurrentPosition(({coords}) =>
-//       setLocation({'latitude': coords.latitude, 'longitude': coords.longitude})
-// 		);
-
-//   return [loading, location]
-// }
-
-// const GetWeather = async () => {
-//   const [locationInfo, setLocationInfo] = useState([])
-//   const [loading, {latitude, longitude}] = useAsyncHook()
-
-// 	const results = await
-// 	);
-
-// 	console.log(results);
-// 	return results;
-// };
 
 export default App;

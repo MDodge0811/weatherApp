@@ -1,0 +1,15 @@
+.section {
+	display: grid;
+	grid-template-rows: 1fr;
+	grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+}
+
+.card {
+	margin: 0.5rem;
+	max-width: 400px;
+	height: auto;
+}
+
+.loading {
+	height: 500px;
+}
