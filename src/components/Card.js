@@ -27,7 +27,7 @@ const Card = ({ data, title }) => {
 			<div>
 				<h1 className="title is-size-5 has-text-centered">Temperature:</h1>
 				<p className="subtitle is-size-5 has-text-centered">
-					{Math.floor(data.temp)}
+					{`${Math.floor(data.temp)}\u00b0`}
 				</p>
 				<h3 className="title is-size-5 has-text-centered">
 					General Conditions:

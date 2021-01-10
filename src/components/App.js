@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import 'bulma';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { fas } from '@fortawesome/free-solid-svg-icons';
@@ -10,7 +10,7 @@ import {
 	faCloudShowersHeavy,
 	faSnowflake,
 } from '@fortawesome/free-solid-svg-icons';
-import openweather from '../api/openweather';
+import openWeather from '../api/openweather';
 import Card from './Card.js';
 import setTime from '../helpers/set_time';
 import '../css/styles.css';
@@ -25,85 +25,97 @@ library.add(
 	faSnowflake
 );
 
-class App extends React.Component {
-	state = {
-		timezone: null,
-		weather: {
-			currentWeather: { dt: null, temp: null, weather: null },
-			dailyweather: { dt: null, temp: null, weather: null },
-		},
-		errorMessage: null,
-	};
+function App() {
+	const [currentWeather, setCurrentWeather] = useState({
+		dt: null,
+		temp: null,
+		weather: null,
+	});
+	const [dailyWeather, setDailyWeather] = useState({
+		dt: null,
+		temp: null,
+		weather: null,
+	});
+	const [errorMessage, setErrorMessage] = useState(null);
 
-	getWeather = async ({ coords }) => {
+	const getWeather = async ({ coords }) => {
 		const key = 'c0e6273d9c10a2fe23babceaed9559df';
 
-		const { data } = await openweather.get(
+		const { data } = await openWeather.get(
 			`onecall?lat=${coords.latitude}&lon=${coords.longitude}&units=imperial&appid=${key}`
 		);
-		const weatherList = { currentWeather: {}, dailyWeather: [] };
 
-		weatherList.currentWeather = {
-			dt: data.current.dt,
-			temp: data.current.temp,
-			weather: data.current.weather[0].main,
-		};
-
+		const dailyList = [];
 		const days = 5; // number of days to render (1-7)
 		data.daily.forEach((time, index) => {
 			if (index < days) {
-				weatherList.dailyWeather.push({
+				dailyList.push({
 					dt: time.dt,
 					temp: time.temp.day,
 					weather: time.weather[0].main,
 				});
 			}
 		});
-		this.setState({ weather: weatherList });
-		this.setState({ timezone: data.timezone });
-	};
 
-	componentDidMount = () => {
-		window.navigator.geolocation.getCurrentPosition(
-			(position) => this.getWeather(position),
-			(err) => this.setState({ errorMessage: err.message })
-		);
-	};
-
-	renderComponent = () => {
-		return this.state.weather.dailyWeather.map((object) => {
-			const { day } = setTime(object.dt);
-			return <Card id="fiveday" data={object} title={day} key={object.dt} />;
+		setDailyWeather(dailyList);
+		setCurrentWeather({
+			dt: data.current.dt,
+			temp: data.current.temp,
+			weather: data.current.weather[0].main,
 		});
 	};
 
-	render() {
-		if (this.state.weather.currentWeather.dt === null) {
+	useEffect(() => {
+		window.navigator.geolocation.getCurrentPosition(
+			(position) => getWeather(position),
+			(err) => setErrorMessage({ message: err.message })
+		);
+	}, []);
+
+	const renderComponent = () => {
+		return dailyWeather.map((individualDay) => {
+			const { day } = setTime(individualDay.dt);
 			return (
-				<React.Fragment>
-					<section className="loading is-flex is-align-items-center  is-justify-items-center is-large">
-						<progress className="m-6 progress is-primary" max="100">
-							15%
-						</progress>
-					</section>
-				</React.Fragment>
+				<Card
+					id="five-day"
+					data={individualDay}
+					title={day}
+					key={individualDay.dt}
+				/>
 			);
-		} else {
-			return (
-				<React.Fragment>
-					<section className="is-flex is-justify-content-center">
-						<Card
-							id="current-weather"
-							data={this.state.weather.currentWeather}
-							title="Current"
-							key={this.state.weather.currentWeather.dt}
-							className="is-centered"
-						/>
-					</section>
-					<section className="section">{this.renderComponent()}</section>
-				</React.Fragment>
-			);
-		}
+		});
+	};
+
+	if (errorMessage) {
+		return <div>{errorMessage.message}</div>;
+	}
+	if (currentWeather.dt === null) {
+		return (
+			<>
+				<section className="loading is-flex is-align-items-center  is-justify-items-center is-large">
+					<progress className="m-6 progress is-primary" max="100">
+						15%
+					</progress>
+				</section>
+			</>
+		);
+	} else {
+		return (
+			<>
+				<section className="is-flex flex-wrap is-justify-content-center">
+					<Card
+						id="current-weather"
+						data={currentWeather}
+						title="Current"
+						key={currentWeather.dt}
+						className="is-centered"
+					/>
+				</section>
+				<section className="section is-flex is-flex-wrap-wrap is-justify-content-center">
+					{renderComponent()}
+				</section>
+			</>
+		);
 	}
 }
 
