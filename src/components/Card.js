@@ -10,13 +10,14 @@ const weather = {
 	Snow: 'snowflake',
 	Clouds: 'cloud',
 	Clear: 'sun',
+	Mist: 'cloud-rain',
 };
 
 const Card = ({ data, title }) => {
 	const icon = weather[data.weather];
 
 	return (
-		<div className="card p-3">
+		<div className="card p-3 ">
 			<h1 className="card-header-title is-centered">{title}</h1>
 			<div className="card-image is-flex is-justify-content-center">
 				<FontAwesomeIcon
@@ -24,15 +25,19 @@ const Card = ({ data, title }) => {
 					icon={icon}
 				/>
 			</div>
-			<div>
-				<h1 className="title is-size-5 has-text-centered">Temperature:</h1>
-				<p className="subtitle is-size-5 has-text-centered">
+			<div className="">
+				<h1 className="title is-size-5 has-text-centered has-text-dark">
+					Temperature:
+				</h1>
+				<p className="subtitle is-size-5 has-text-centered has-text-dark">
 					{`${Math.floor(data.temp)}\u00b0`}
 				</p>
-				<h3 className="title is-size-5 has-text-centered">
+				<h3 className="title is-size-5 has-text-centered has-text-dark">
 					General Conditions:
 				</h3>
-				<p className="subtitle is-size-5 has-text-centered">{data.weather}</p>
+				<p className="subtitle is-size-5 has-text-centered has-text-dark">
+					{data.weather}
+				</p>
 			</div>
 		</div>
 	);
